@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grafischer Taschenrechner</title>
+
+  <!-- math.js für mathematische Ausdrücke -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.1/lib/browser/math.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #111827, #1e3a8a);
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 1100px;
+      background: #1f2937;
+      border-radius: 18px;
+      padding: 25px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 0;
+      color: #60a5fa;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 25px;
+    }
+
+    .calculator {
+      background: #111827;
+      padding: 18px;
+      border-radius: 14px;
+    }
+
+    #display {
+      width: 100%;
+      height: 60px;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 22px;
+      text-align: right;
+      color: white;
+      background: #374151;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    button {
+      min-height: 48px;
+      font-size: 17px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      background: #374151;
+      transition: 0.15s;
+    }
+
+    button:hover {
+      background: #4b5563;
+      transform: scale(1.03);
+    }
+
+    button.operator {
+      background: #2563eb;
+    }
+
+    button.operator:hover {
+      background: #1d4ed8;
+    }
+
+    button.equal {
+      background: #16a34a;
+    }
+
+    button.clear {
+      background: #dc2626;
+    }
+
+    .graph-area {
+      background: #111827;
+      padding: 18px;
+      border-radius: 14px;
+    }
+
+    .settings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .settings input {
+      width: 100px;
+      padding: 10px;
+      color: white;
+      background: #374151;
+      border: 1px solid #6b7280;
+      border-radius: 6px;
+    }
+
+    .settings button {
+      padding: 0 18px;
+      background: #7c3aed;
+    }
+
+    canvas {
+      width: 100%;
+      height: 500px;
+      display: block;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .info {
+      margin-top: 12px;
+      color: #d1d5db;
+      font-size: 14px;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      canvas {
+        height: 380px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <h1>Grafischer Taschenrechner</h1>
+
+    <div class="layout">
+      <section class="calculator">
+        <input id="display" type="text" placeholder="z. B. sin(x) + 2">
+
+        <div class="buttons">
+          <button class="clear" onclick="clearDisplay()">C</button>
+          <button onclick="deleteLast()">DEL</button>
+          <button onclick="addToDisplay('(')">(</button>
+          <button onclick="addToDisplay(')')">)</button>
+
+          <button onclick="addToDisplay('7')">7</button>
+          <button onclick="addToDisplay('8')">8</button>
+          <button onclick="addToDisplay('9')">9</button>
+          <button class="operator" onclick="addToDisplay('/')">÷</button>
+
+          <button onclick="addToDisplay('4')">4</button>
+          <button onclick="addToDisplay('5')">5</button>
+          <button onclick="addToDisplay('6')">6</button>
+          <button class="operator" onclick="addToDisplay('*')">×</button>
+
+          <button onclick="addToDisplay('1')">1</button>
+          <button onclick="addToDisplay('2')">2</button>
+          <button onclick="addToDisplay('3')">3</button>
+          <button class="operator" onclick="addToDisplay('-')">−</button>
+
+          <button onclick="addToDisplay('0')">0</button>
+          <button onclick="addToDisplay('.')">.</button>
+          <button onclick="addToDisplay('^')">xʸ</button>
+          <button class="operator" onclick="addToDisplay('+')">+</button>
+
+          <button onclick="addToDisplay('sin(')">sin</button>
+          <button onclick="addToDisplay('cos(')">cos</button>
+          <button onclick="addToDisplay('tan(')">tan</button>
+          <button onclick="addToDisplay('sqrt(')">√</button>
+
+          <button onclick="addToDisplay('log(')">log</button>
+          <button onclick="addToDisplay('ln(')">ln</button>
+          <button onclick="addToDisplay('pi')">π</button>
+          <button class="equal" onclick="calculate()">=</button>
+        </div>
+      </section>
+
+      <section class="graph-area">
+        <div class="settings">
+          <input id="functionInput" value="sin(x)" placeholder="f(x), z. B. x^2">
+          <input id="xMin" type="number" value="-10" placeholder="X-Min">
+          <input id="xMax" type="number" value="10" placeholder="X-Max">
+          <input id="yMin" type="number" value="-10" placeholder="Y-Min">
+          <input id="yMax" type="number" value="10" placeholder="Y-Max">
+          <button onclick="drawGraph()">Graph zeichnen</button>
+        </div>
+
+        <canvas id="graph"></canvas>
+
+        <div class="info">
+          Erlaubte Funktionen: x^2, sin(x), cos(x), tan(x), sqrt(x), log(x), abs(x)
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const display = document.getElementById("display");
+
+    function addToDisplay(value) {
+      display.value += value;
+      display.focus();
+    }
+
+    function clearDisplay() {
+      display.value = "";
+    }
+
+    function deleteLast() {
+      display.value = display.value.slice(0, -1);
+    }
+
+    function calculate() {
+      try {
+        const result = math.evaluate(display.value);
+        display.value = result;
+      } catch (error) {
+        display.value = "Fehler";
+        setTimeout(clearDisplay, 1200);
+      }
+    }
+
+    display.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        calculate();
+      }
+    });
+
+    function drawGraph() {
+      const canvas = document.getElementById("graph");
+      const ctx = canvas.getContext("2d");
+
+      const functionText = document.getElementById("functionInput").value;
+      const xMin = Number(document.getElementById("xMin").value);
+      const xMax = Number(document.getElementById("xMax").value);
+      const yMin = Number(document.getElementById("yMin").value);
+      const yMax = Number(document.getElementById("yMax").value);
+
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+
+      const pixelRatio = window.devicePixelRatio || 1;
+      canvas.width = width * pixelRatio;
+      canvas.height = height * pixelRatio;
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+      function screenX(x) {
+        return (x - xMin) / (xMax - xMin) * width;
+      }
+
+      function screenY(y) {
+        return height - (y - yMin) / (yMax - yMin) * height;
+      }
+
+      // Hintergrund
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, width, height);
+
+      // Raster
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+
+      for (let x = Math.ceil(xMin); x <= xMax; x++) {
+        const px = screenX(x);
+        ctx.beginPath();
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, height);
+        ctx.stroke();
+      }
+
+      for (let y = Math.ceil(yMin); y <= yMax; y++) {
+        const py = screenY(y);
+        ctx.beginPath();
+        ctx.moveTo(0, py);
+        ctx.lineTo(width, py);
+        ctx.stroke();
+      }
+
+      // Achsen
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+
+      if (xMin <= 0 && xMax >= 0) {
+        const axisX = screenX(0);
+        ctx.beginPath();
+        ctx.moveTo(axisX, 0);
+        ctx.lineTo(axisX, height);
+        ctx.stroke();
+      }
+
+      if (yMin <= 0 && yMax >= 0) {
+        const axisY = screenY(0);
+        ctx.beginPath();
+        ctx.moveTo(0, axisY);
+        ctx.lineTo(width, axisY);
+        ctx.stroke();
+      }
+
+      // Funktion zeichnen
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      let firstPoint = true;
+      let previousY = null;
+
+      for (let px = 0; px <= width; px++) {
+        const x = xMin + px / width * (xMax - xMin);
+
+        try {
+          const y = math.evaluate(functionText, { x: x });
+
+          if (!Number.isFinite(y)) {
+            firstPoint = true;
+            previousY = null;
+            continue;
+          }
+
+          const py = screenY(y);
+
+          // Sprünge, z. B. bei tan(x), nicht verbinden
+          if (
+            previousY !== null &&
+            Math.abs(py - previousY) > height
+          ) {
+            firstPoint = true;
+          }
+
+          if (firstPoint) {
+            ctx.moveTo(px, py);
+            firstPoint = false;
+          } else {
+            ctx.lineTo(px, py);
+          }
+
+          previousY = py;
+        } catch (error) {
+          firstPoint = true;
+          previousY = null;
+        }
+      }
+
+      ctx.stroke();
+
+      // Beschriftung
+      ctx.fillStyle = "#111827";
+      ctx.font = "14px Arial";
+      ctx.fillText("f(x) = " + functionText, 10, 22);
+    }
+
+    window.addEventListener("resize", drawGraph);
+    drawGraph();
+  </script>
+</body>
+</html>
